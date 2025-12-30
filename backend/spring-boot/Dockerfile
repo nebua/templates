@@ -1,6 +1,13 @@
-FROM openjdk:17-jdk-slim
+# Stage 1: Build
+FROM maven:3.9.4-openjdk-17-slim AS builder
 WORKDIR /app
-COPY . .
-RUN ./gradlew build -x test
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# Stage 2: Production
+FROM openjdk:17-jre-slim AS runner
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
 EXPOSE 8080
-CMD ["java", "-jar", "build/libs/app.jar"]
+CMD ["java", "-jar", "app.jar"]
