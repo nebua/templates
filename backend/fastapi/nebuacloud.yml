@@ -1,0 +1,19 @@
+app:
+  name: fastapi
+  port: 8000
+
+runtime:
+  type: python
+  version: "3.11"
+
+build:
+  install:
+    - pip install -r requirements.txt
+  start:
+    - uvicorn main:app --host 0.0.0.0 --port 8000
+
+deploy:
+  imageTagMode: latest
+
+env:
+  PYTHONUNBUFFERED: "1"

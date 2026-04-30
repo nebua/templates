@@ -1,0 +1,21 @@
+app:
+  name: dotnet-webapi
+  port: 5000
+
+runtime:
+  type: dotnet
+  version: "7.0"
+
+build:
+  install:
+    - dotnet restore
+  build:
+    - dotnet publish -c Release -o out
+  start:
+    - dotnet dotnet-webapi.dll
+
+deploy:
+  imageTagMode: latest
+
+env:
+  ASPNETCORE_ENVIRONMENT: Production

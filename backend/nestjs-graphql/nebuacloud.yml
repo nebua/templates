@@ -1,0 +1,21 @@
+app:
+  name: nestjs-graphql
+  port: 3000
+
+runtime:
+  type: node
+  version: "18"
+
+build:
+  install:
+    - npm install
+  build:
+    - npm run build
+  start:
+    - npm run start:prod
+
+deploy:
+  imageTagMode: latest
+
+env:
+  NODE_ENV: production

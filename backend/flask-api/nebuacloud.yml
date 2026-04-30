@@ -1,0 +1,19 @@
+app:
+  name: flask-api
+  port: 5000
+
+runtime:
+  type: python
+  version: "3.11"
+
+build:
+  install:
+    - pip install -r requirements.txt
+  start:
+    - python app.py
+
+deploy:
+  imageTagMode: latest
+
+env:
+  PYTHONUNBUFFERED: "1"

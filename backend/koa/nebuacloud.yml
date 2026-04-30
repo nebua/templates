@@ -1,0 +1,19 @@
+app:
+  name: koa
+  port: 3000
+
+runtime:
+  type: node
+  version: "18"
+
+build:
+  install:
+    - npm install
+  start:
+    - npm start
+
+deploy:
+  imageTagMode: latest
+
+env:
+  NODE_ENV: production

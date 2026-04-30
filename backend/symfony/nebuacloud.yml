@@ -1,0 +1,11 @@
+# Example NebuaCloud deployment config for this template.
+# This template already includes a Dockerfile, so NebuaCloud can rely on that image build.
+app:
+  name: symfony
+  port: 80
+
+deploy:
+  imageTagMode: latest
+
+env:
+  APP_ENV: prod

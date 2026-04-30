@@ -1,0 +1,20 @@
+app:
+  name: django-rest
+  port: 8000
+
+runtime:
+  type: python
+  version: "3.11"
+
+build:
+  install:
+    - pip install -r requirements.txt
+  start:
+    - python manage.py runserver 0.0.0.0:8000
+
+deploy:
+  imageTagMode: latest
+
+env:
+  PYTHONUNBUFFERED: "1"
+  DJANGO_SETTINGS_MODULE: config.settings
