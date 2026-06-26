@@ -1,0 +1,375 @@
+# Default values for tutor-multi-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+clusterDomain: "*"
+
+ingress-nginx:
+  # Use ingress-nginx as a default controller.
+  enabled: true
+
+cert-manager:
+  # Use cert-manager as a default certificate controller.
+  enabled: true
+  installCRDs: false
+    # Email address associated with the ACME account. Used to notify about expiring
+    # certificates.
+  email: ""
+
+# Configuration for the metrics server chart
+metricsserver:
+   # Control the chart inclusion
+   enabled: false
+   # See https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/values.yaml
+   # for all available options
+   replicas: 1
+
+# Configuration for the Vertical Pod Autoscaler chart
+vpa:
+   # Control the chart inclusion
+   enabled: false
+   # See https://github.com/cowboysysop/charts/blob/master/charts/vertical-pod-autoscaler/values.yaml
+   # for all available options
+   admissionController:
+      replicaCount: 1
+
+# Multi-tenant ElasticSearch
+elasticsearch:
+  enabled: false
+
+  clusterName: "harmony-search-cluster"
+  masterService: "harmony-search-cluster"
+
+  # Operators will need to add/update the following setting in each
+  # of their instances by running the commands:
+  # ```
+  # tutor config save --set K8S_HARMONY_ENABLE_SHARED_HARMONY_SEARCH=true --set RUN_ELASTICSEARCH=false
+  # tutor harmony create-elasticsearch-user
+  # ```
+  # RUN_ELASTICSEARCH: false
+  # HARMONY_SEARCH_INDEX_PREFIX: "username-"
+  # K8S_HARMONY_ENABLE_SHARED_HARMONY_SEARCH: true
+  # HARMONY_SEARCH_HTTP_AUTH: "username:actual_password"
+
+  # We will create the relevant certs, because they need to shared
+  # with pods in other namespaces.
+  createCert: false
+  # Authentication is only available in https
+  protocol: https
+
+  # This secret will contain the http certificates.
+  secretMounts:
+    - name: elasticsearch-certificates
+      secretName: elasticsearch-certificates
+      path: /usr/share/elasticsearch/config/certs
+      defaultMode: 0777
+
+  # The password for the elastic user is stored in this secret
+  extraEnvs:
+    - name: ELASTIC_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: elasticsearch-credentials
+          key: password
+
+  esConfig:
+    "elasticsearch.yml": |
+      cluster.name: harmony-search-cluster
+      xpack.security.enabled: true
+      xpack.security.http.ssl.enabled: true
+      xpack.security.http.ssl.key: /usr/share/elasticsearch/config/certs/tls.key
+      xpack.security.http.ssl.certificate: /usr/share/elasticsearch/config/certs/tls.crt
+      xpack.security.transport.ssl.enabled: true
+      xpack.security.transport.ssl.key: /usr/share/elasticsearch/config/certs/tls.key
+      xpack.security.transport.ssl.certificate: /usr/share/elasticsearch/config/certs/tls.crt
+      xpack.security.transport.ssl.certificate_authorities: /usr/share/elasticsearch/config/certs/ca.crt
+      xpack.security.transport.ssl.verification_mode: certificate
+
+# Multi-tenant OpenSearch
+opensearch:
+  enabled: false
+  clusterName: "harmony-search-cluster"
+  masterService: "harmony-search-cluster"
+
+  # Operators will need to add/update the following setting in each
+  # of their instances by running the commands:
+  # ```
+  # tutor config save --set K8S_HARMONY_ENABLE_SHARED_HARMONY_SEARCH=true --set RUN_ELASTICSEARCH=false
+  # tutor harmony create-opensearch-user
+  # ```
+  # RUN_ELASTICSEARCH: false
+  # HARMONY_SEARCH_INDEX_PREFIX: "username-"
+  # K8S_HARMONY_USE_SHARED_OPENSEARCH: true
+  # HARMONY_SEARCH_HTTP_AUTH: "username:actual_password"
+
+  # # This secret will contain the ssl certificates.
+  secretMounts:
+    - name: opensearch-certificates
+      secretName: opensearch-certificates
+      path: /usr/share/opensearch/config/certs
+      defaultMode: 0777
+
+  resources:
+    requests:
+      cpu: "1000m"
+      memory: "100Mi"
+
+  persistence:
+    size: 30Gi
+
+  # Set vm.max_map_count
+  # Default value is 262144
+  sysctlInit:
+    enabled: true
+
+  extraEnvs:
+    - name: DISABLE_INSTALL_DEMO_CONFIG
+      value: "true"
+    - name: HARMONY_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: opensearch-credentials
+          key: harmony_password
+
+  # Allows you to add any config files in {{ .Values.opensearchHome }}/config
+  opensearchHome: /usr/share/opensearch
+  # such as opensearch.yml and log4j2.properties
+
+  securityConfig:
+    enabled: true
+    internalUsersSecret: opensearch-credentials
+
+  config:
+    opensearch.yml: |
+      cluster.name: harmony-search-cluster
+      network.host: 0.0.0.0
+      plugins:
+        security:
+          ssl:
+            transport:
+              enabled: true
+              pemcert_filepath: certs/tls.crt
+              pemkey_filepath: certs/tls.key
+              pemtrustedcas_filepath: certs/ca.crt
+              enforce_hostname_verification: false
+            http:
+              enabled: true
+              pemcert_filepath: certs/tls.crt
+              pemkey_filepath: certs/tls.key
+              pemtrustedcas_filepath: certs/ca.crt
+          authcz:
+            admin_dn:
+              - CN=opensearch-master.*.local
+          nodes_dn:
+            - CN=opensearch-master.*.local
+          allow_unsafe_democertificates: false
+          allow_default_init_securityindex: true
+          audit.type: internal_opensearch
+          enable_snapshot_restore_privilege: true
+          check_snapshot_restore_write_privileges: true
+          restapi:
+            roles_enabled: ["all_access", "security_rest_api_access"]
+          system_indices:
+            enabled: true
+            indices:
+              [
+                ".opendistro-alerting-config",
+                ".opendistro-alerting-alert*",
+                ".opendistro-anomaly-results*",
+                ".opendistro-anomaly-detector*",
+                ".opendistro-anomaly-checkpoints",
+                ".opendistro-anomaly-detection-state",
+                ".opendistro-reports-*",
+                ".opendistro-notifications-*",
+                ".opendistro-notebooks",
+                ".opendistro-asynchronous-search-response*",
+              ]
+
+# Configuration for the Karpenter chart
+karpenter:
+  # add Karpenter node management for AWS EKS clusters. See: https://karpenter.sh/
+  enabled: false
+  serviceAccount:
+    name: "karpenter"
+    annotations:
+      eks.amazonaws.com/role-arn: ""
+  settings:
+    aws:
+      # -- Cluster name.
+      clusterName: ""
+      # -- Cluster endpoint. If not set, will be discovered during startup (EKS only)
+      # From version 0.25.0, Karpenter helm chart allows the discovery of the cluster endpoint. More details in
+      # https://github.com/aws/karpenter/blob/main/website/content/en/docs/upgrade-guide.md#upgrading-to-v0250
+      # clusterEndpoint: ""
+      # -- The default instance profile name to use when launching nodes
+      defaultInstanceProfile: ""
+      # -- interruptionQueueName is disabled if not specified. Enabling interruption handling may
+      # require additional permissions on the controller service account.
+      interruptionQueueName: ""
+  # ---------------------------------------------------------------------------
+  # Provide sensible defaults for resource provisioning and lifecycle
+  # ---------------------------------------------------------------------------
+  # Requirements for the provisioner API.
+  # More details in https://karpenter.sh/docs/concepts/provisioners/
+  provisioner:
+    name: "default"
+    spec:
+      requirements:
+        - key: karpenter.sh/capacity-type
+          operator: In
+          values: ["spot"]
+        # - key: node.kubernetes.io/instance-type
+        #   operator: In
+        #   values: ["t3.large", "t3.xlarge", "t3.2xlarge", "t2.xlarge", "t2.2xlarge"]
+        # - key: kubernetes.io/arch
+        #   operator: In
+        #   values: ["amd64"]
+      # The limits section controls the maximum amount of resources that the provisioner will manage.
+      # More details in https://karpenter.sh/docs/concepts/provisioners/#speclimitsresources
+      limits:
+        resources:
+          cpu: "200"       # 50 nodes * 4 cpu
+          memory: "800Gi"  # 50 nodes * 16Gi
+      # TTL in seconds. If nil, the feature is disabled, nodes will never terminate
+      ttlSecondsUntilExpired: 2592000
+      # TTL in seconds. If nil, the feature is disabled, nodes will never scale down
+      # due to low utilization.
+      ttlSecondsAfterEmpty: 30
+  # Node template reference. More details in https://karpenter.sh/docs/concepts/node-templates/
+  nodeTemplate:
+    name: "default"
+
+# Prometheus stack
+#   
+# If no storage is defined, the Prometheus and Grafana data is stored on
+# empheral storage. You can find more information about storages in the
+# Prometheus operator user guides: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/storage.md
+# 
+# - To make Grafana persistent, you may want to set Grafana storage as shown in https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml#L999-L1009
+# - To set Prometheus storage, you can see the example storage spec at https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml#L3557-L3570
+prometheusstack:
+  enabled: false
+
+  kubeStateMetrics:
+    enabled: true
+
+  nodeExporter:
+    enabled: true
+
+  prometheus:
+    enabled: true
+
+    prometheusSpec:
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "450Mi"
+
+  alertmanager:
+    enabled: true
+
+    alertmanagerSpec:
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "50Mi"
+
+  # Admin password is not pre-generated, because it is not picked up by the
+  # grafana pod yet -- this is a bug on their end. For more information, visit:
+  # https://github.com/prometheus-community/helm-charts/issues/3679
+  grafana:
+    enabled: false
+
+    ingress:
+      enabled: false
+
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+          - name: 'default'
+            orgId: 1
+            folder: ''
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/default
+
+    dashboards:
+      default:
+        kubernetes-views-global:
+          # url: https://grafana.com/api/dashboards/15757/revisions/31/download
+          gnetId: 15757
+          revision: 31
+          datasource: Prometheus
+
+    grafana.ini:
+      dashboards:
+        default_home_dashboard_path: /var/lib/grafana/dashboards/default/kubernetes-views-global.json
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+
+# Configuration for the K8s Dashboard chart
+k8sdashboard:
+  enabled: false
+
+# Before enablin Velero, make sure to execute "velero install --crds-only" to install
+# the CRDs in the cluster.
+velero:
+  enabled: false
+
+  # For the list of supported providers, and their configuration,
+  # please visit https://velero.io/docs/main/supported-providers/
+  configuration:
+    backupStorageLocation:
+      - name: "velero-backup-harmony"
+        provider: aws
+        bucket: ""  # unique name of the bucket
+        default: true
+        config:
+          s3Url: "" # the endpoint can be any S3 compatible storage
+          region: "" # the region of the bucket
+
+    volumeSnapshotLocation:
+      - name: "velero-volume-snapshot-harmony"
+        provider: "" # provider configuration
+        config:
+          region: "" # the region of the bucket
+
+  credentials:
+    secretContents:
+      cloud: |
+        [default]
+        aws_access_key_id=""     # AWS access key ID
+        aws_secret_access_key="" # AWS secret access key
+
+  initContainers:
+    - name: velero-plugin-for-aws
+      image: velero/velero-plugin-for-aws:1.8.4
+      volumeMounts:
+        - mountPath: /target
+          name: plugins
+
+  schedules:
+    hourly-backup:
+      disabled: false
+      schedule: "30 */1 * * *"
+      template:
+        ttl: "24h"
+    daily-backup:
+      disabled: false
+      schedule: "0 6 * * *"
+      template:
+        ttl: "168h"
+    weekly-backup:
+      disabled: false
+      schedule: "59 23 * * 0"
+      template:
+        ttl: "720h"
+
+openfaas:
+  enabled: false

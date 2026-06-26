@@ -1,0 +1,5 @@
+# my-velero-restore-chart/values.yaml
+
+restoreName: angelo-namespace-restore
+backupName: angelo-namespace-backup
+includedNamespaces: []

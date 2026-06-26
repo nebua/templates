@@ -1,0 +1,5 @@
+apiVersion: v2
+name: empty
+version: 0.1.0
+description: No-op chart used to let Argo CD create and track a namespace.
+type: application

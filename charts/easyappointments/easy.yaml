@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: easy-app
+  labels:
+    app: easy-app
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  # clusterIP: None
+  # ports:
+  #   - port: 8080
+  selector:
+    app: easy-app
+    environment: frontend
+    #tier: frontend
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: easy-app
+  labels:
+    app: easy-app
+spec:
+  selector:
+    matchLabels:
+      app: easy-app
+      environment: frontend
+      #tier: frontend
+  strategy: {}
+    #type: Recreate
+  template:
+    metadata:
+      labels:
+        app: easy-app
+        environment: frontend
+        #tier: frontend
+    spec:
+      containers:
+      - image: nebua/easyappointments:latest
+        name: easy-app
+        env:
+        - name: BASE_URL
+          value: "https://book.nebuacloud.com"
+        - name: LANGUAGE
+          value: "english"
+        - name: DEBUG_MODE
+          value: 'true'
+        - name: DB_HOST
+          value: "db.nebuacloud.com"
+        - name: DB_NAME
+          value: easy_db
+        - name: DB_USERNAME
+          value: easy
+        - name: DB_PASSWORD
+          value: "Cd99zGAWeCzrNYxc"
+        - name: GOOGLE_SYNC_FEATURE
+          value: 'false'
+        - name: GOOGLE_PRODUCT_NAME
+          value: 'false'
+        - name: GOOGLE_CLIENT_ID
+          value: 'false'
+        - name: GOOGLE_CLIENT_SECRET
+          value: 'false'
+        - name: GOOGLE_API_KEY
+          value: 'false'
+        ports:
+        - containerPort: 8080
+          name: easy-app
+        imagePullPolicy: "Always" #Always

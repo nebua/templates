@@ -1,0 +1,34 @@
+# my-velero-backup-chart/templates/backup.yaml
+
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: {{ .Release.Name }}
+  namespace: velero
+spec:
+  csiSnapshotTimeout: {{ .Values.csiSnapshotTimeout }}
+  includedNamespaces:
+    - '{{ .Values.includedNamespaces }}'
+  excludedNamespaces: [] #{{ .Values.excludedNamespaces | toJson | quote }}
+  includedResources:
+    #- '{{ .Values.includedResources }}'
+    - 'persistentvolumeclaims'
+    - 'persistentvolumes'
+    - 'pods'
+    - 'services'
+    - 'configmaps'
+    - 'secrets'
+    - 'statefulsets'
+    - 'deployments'
+    - 'replicasets'
+    - 'jobs'
+    - 'cronjobs'
+    - 'daemonsets'
+    - 'ingresses'
+    - 'networkpolicies'
+    - 'roles'
+    - 'rolebindings'
+    - 'serviceaccounts'
+  storageLocation: default # Ensure this matches your BSL
+  snapshotVolumes: false
+  defaultVolumesToRestic: true

@@ -1,0 +1,4 @@
+resources:
+  #- pv-easy.yaml
+  #- mysql.yaml
+  - easy.yaml

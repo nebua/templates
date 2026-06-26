@@ -1,0 +1,6 @@
+apiVersion: v2
+name: phpmyadmin
+version: 0.1.0
+description: Lightweight phpMyAdmin deployment chart.
+type: application
+appVersion: "5.2"

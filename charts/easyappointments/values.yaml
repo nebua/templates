@@ -1,0 +1,25 @@
+replicaCount: 1
+
+image:
+  repository: nebua/easyappointments
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+
+env:
+  BASE_URL: https://book.nebuacloud.com
+  LANGUAGE: english
+  DEBUG_MODE: "true"
+  DB_HOST: db.nebuacloud.com
+  DB_NAME: easy_db
+  DB_USERNAME: easy
+  DB_PASSWORD: Cd99zGAWeCzrNYxc
+  GOOGLE_SYNC_FEATURE: "false"
+  GOOGLE_PRODUCT_NAME: "false"
+  GOOGLE_CLIENT_ID: "false"
+  GOOGLE_CLIENT_SECRET: "false"
+  GOOGLE_API_KEY: "false"

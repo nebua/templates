@@ -1,0 +1,76 @@
+apiVersion: v2
+name: harmony-chart
+description: A Helm chart for deploying multiple Open edX instances onto Kubernetes using Tutor
+type: application
+# This is the chart version. This version number should be incremented each time you make changes to the chart and its
+# templates, including the app version.
+# Versions are expected to follow Semantic Versioning (https://semver.org/)
+version: 0.7.3
+# This is the version number of the application being deployed. This version number should be incremented each time you
+# make changes to the application. Versions are not expected to follow Semantic Versioning. They should reflect the
+# version the application is using. It is recommended to use it with quotes.
+#
+# In our case, this represents the version of Tutor that this chart is compatible with.
+appVersion: "17.0.4"
+
+dependencies:
+# This is just info for the "helm dependency update" command, which will update the ./charts/ directory when run, using
+# this information.
+- name: ingress-nginx
+  version: "4.4.2"
+  repository: https://kubernetes.github.io/ingress-nginx
+  condition: ingress-nginx.enabled
+
+- name: cert-manager
+  version: "1.13.3"
+  repository: https://charts.jetstack.io
+  condition: cert-manager.enabled
+
+- name: metrics-server
+  alias: metricsserver
+  version: "~3.8.3"
+  repository: https://kubernetes-sigs.github.io/metrics-server/
+  condition: metricsserver.enabled
+
+- name: vertical-pod-autoscaler
+  alias: vpa
+  version: "~6.0.3"
+  repository: https://cowboysysop.github.io/charts/
+  condition: vpa.enabled
+
+- name: elasticsearch
+  version: "7.17.3"
+  condition: elasticsearch.enabled
+  repository: https://helm.elastic.co
+
+- name: opensearch
+  version: "2.13.3"
+  condition: opensearch.enabled
+  repository: https://opensearch-project.github.io/helm-charts
+
+- name: karpenter
+  version: "v0.29.2"
+  repository: oci://public.ecr.aws/karpenter
+  condition: karpenter.enabled
+
+- name: kube-prometheus-stack
+  alias: prometheusstack
+  version: "56.6.2"
+  condition: prometheusstack.enabled
+  repository: https://prometheus-community.github.io/helm-charts
+
+- name: kubernetes-dashboard
+  version: "7.3.1"
+  repository: https://kubernetes.github.io/dashboard
+  alias: k8sdashboard
+  condition: k8sdashboard.enabled
+
+- name: velero
+  version: "5.2.0"
+  repository: https://vmware-tanzu.github.io/helm-charts
+  condition: velero.enabled
+
+- name: openfaas
+  version: "14.2.34"
+  repository: https://openfaas.github.io/faas-netes
+  condition: openfaas.enabled

@@ -1,0 +1,27 @@
+# my-velero-restore-chart/templates/restore.yaml
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: {{ .Values.restoreName }}
+  namespace: velero
+spec:
+  backupName: {{ .Values.backupName }}
+  includedNamespaces:
+    - {{ .Values.includedNamespaces | quote }}
+  includedResources:
+    - '*'
+  {{- if .Values.targetNamespace }}
+  namespaceMapping:
+    {{ .Values.includedNamespaces | quote }}: {{ .Values.targetNamespace | quote }}
+  {{- end }}
+  
+  restoreStatus:
+    includedResources:
+      - 'pods'
+      - 'persistentvolumeclaims'
+      - 'configmaps'
+      - 'secrets'
+      - 'statefulsets'
+      - 'services'
+      - 'endpoints'
+      - 'networkpolicies'

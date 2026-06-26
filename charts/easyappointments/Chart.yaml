@@ -1,0 +1,6 @@
+apiVersion: v2
+name: easyappointments
+version: 0.1.0
+description: EasyAppointments deployment chart.
+type: application
+appVersion: "latest"

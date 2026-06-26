@@ -1,0 +1,9 @@
+# my-velero-backup-chart/values.yaml
+
+csiSnapshotTimeout: 10m
+
+includedNamespaces: []
+
+excludedNamespaces: []
+
+includedResources: []
