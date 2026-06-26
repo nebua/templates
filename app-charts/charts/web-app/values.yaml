@@ -1,0 +1,42 @@
+replicaCount: 1
+
+containerPort: 80
+
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+registry:
+  provider: "github"
+  server: ""
+  secretName: ""
+  username: ""
+  token: ""
+
+extraEnv: []
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+service:
+  type: ClusterIP
+  port: 80

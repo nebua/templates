@@ -1,0 +1,59 @@
+replicaCount: 1
+
+containerPort: 3000
+
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+registry:
+  provider: "github"
+  server: ""
+  secretName: ""
+  username: ""
+  token: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: ""
+      paths:
+        - path: /api
+          pathType: Prefix
+  tls: []
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+
+readinessProbe:
+  enabled: false
+  path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+livenessProbe:
+  enabled: false
+  path: /health
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+extraEnv: []

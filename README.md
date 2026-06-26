@@ -6,11 +6,21 @@ A public monorepo of production-ready starter templates for popular frontend, ba
 
 ```
 templates/
+  app-charts/ # Public runtime Helm charts for customer-cluster deployments
   frontend/   # UI frameworks (React, Vue, Angular, etc.)
   backend/    # API frameworks (NestJS, Express, Django, etc.)
   fullstack/  # Combined frontend + backend (Next.js, Nuxt, Django+React, etc.)
 README.md     # This file
 ```
+
+## App Charts
+
+`app-charts/` contains public, generic Helm charts used by client-side Argo CD to deploy already-built images:
+
+- `app-charts/charts/web-app`
+- `app-charts/charts/api-app`
+
+These charts are intentionally separated from private NebuaCloud build infrastructure. They do not include Argo Workflows, Tekton, Kaniko, or internal CI/CD orchestration.
 
 ## How to Run Any Template
 

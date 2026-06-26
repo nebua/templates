@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      {{- $hasRegistryToken := and .Values.registry (ne (default "" .Values.registry.token) "") -}}
+      {{- $registrySecretName := default (printf "%s-registry-credentials" .Release.Name) .Values.registry.secretName -}}
+      {{- if or .Values.imagePullSecrets $hasRegistryToken }}
+      imagePullSecrets:
+        {{- if $hasRegistryToken }}
+        - name: {{ $registrySecretName }}
+        {{- end }}
+        {{- if .Values.imagePullSecrets }}
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default .Release.Name }}
+      {{- end }}
+      containers:
+        - name: {{ .Release.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containerPort | default .Values.service.port }}
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: ENVIRONMENT
+              value: production
+            {{- range .Values.extraEnv }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.containerPort | default .Values.service.port }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.containerPort | default .Values.service.port }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          {{- end }}

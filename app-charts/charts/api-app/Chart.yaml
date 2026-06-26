@@ -1,0 +1,6 @@
+apiVersion: v2
+name: api-app
+description: Generic runtime Helm chart for backend and API applications
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      {{- $hasRegistryToken := and .Values.registry (ne (default "" .Values.registry.token) "") -}}
+      {{- $registrySecretName := default (printf "%s-registry-credentials" .Release.Name) .Values.registry.secretName -}}
+      {{- if or .Values.imagePullSecrets $hasRegistryToken }}
+      imagePullSecrets:
+        {{- if $hasRegistryToken }}
+        - name: {{ $registrySecretName }}
+        {{- end }}
+        {{- if .Values.imagePullSecrets }}
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Release.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.containerPort | default 80 }}
+          env:
+            - name: NODE_ENV
+              value: production
+            {{- range .Values.extraEnv }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
