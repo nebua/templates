@@ -8,6 +8,10 @@ This package intentionally contains only generic runtime deployment charts. It d
 
 - `charts/web-app`: frontend/static/web applications
 - `charts/api-app`: backend/API applications
+- `charts/raw-resources`: generic passthrough for stacks whose shape (multiple containers,
+  Secrets, volumes) doesn't fit `web-app`/`api-app`. Takes a `resources` value - a list of
+  already fully-formed Kubernetes manifests - and renders each one as-is. Used when a stack
+  is composed from multiple interdependent services rather than a single container.
 
 ## Boundary
 

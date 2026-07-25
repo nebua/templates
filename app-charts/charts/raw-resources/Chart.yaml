@@ -1,0 +1,6 @@
+apiVersion: v2
+name: raw-resources
+description: Generic passthrough chart for stacks whose shape (multiple containers, Secrets, volumes) doesn't fit the single-container web-app/api-app charts
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
