@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mariadb
+description: MariaDB on the official Docker Hub image (Docker Official Images).
+type: application
+version: 1.0.0
+appVersion: "11.3"
+keywords:
+  - mariadb
+  - database
+home: https://hub.docker.com/_/mariadb
+sources:
+  - https://hub.docker.com/_/mariadb
+maintainers:
+  - name: NebuaCloud

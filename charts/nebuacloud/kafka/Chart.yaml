@@ -1,0 +1,14 @@
+apiVersion: v2
+name: kafka
+description: Single-node Kafka (KRaft mode, no ZooKeeper) on the official apache/kafka image, maintained by the Apache Software Foundation.
+type: application
+version: 1.0.0
+appVersion: "3.8"
+keywords:
+  - kafka
+  - messaging
+home: https://kafka.apache.org
+sources:
+  - https://hub.docker.com/r/apache/kafka
+maintainers:
+  - name: NebuaCloud

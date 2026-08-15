@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mysql
+description: MySQL on the official Docker Hub image (Docker Official Images).
+type: application
+version: 1.0.0
+appVersion: "8.0"
+keywords:
+  - mysql
+  - database
+home: https://hub.docker.com/_/mysql
+sources:
+  - https://hub.docker.com/_/mysql
+maintainers:
+  - name: NebuaCloud

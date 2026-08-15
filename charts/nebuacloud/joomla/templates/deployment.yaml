@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.fullname" . }}
+  labels:
+    {{- include "common.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "common.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "common.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: joomla
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: JOOMLA_DB_HOST
+              value: "{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}"
+            - name: JOOMLA_DB_TYPE
+              value: {{ .Values.externalDatabase.type | quote }}
+            - name: JOOMLA_DB_USER
+              value: {{ .Values.externalDatabase.user | quote }}
+            - name: JOOMLA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "joomla.dbSecretName" . }}
+                  key: {{ include "joomla.dbSecretPasswordKey" . }}
+            - name: JOOMLA_DB_NAME
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: JOOMLA_SITE_NAME
+              value: {{ .Values.site.name | quote }}
+            - name: JOOMLA_ADMIN_USER
+              value: {{ .Values.site.adminUser | quote }}
+            - name: JOOMLA_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "common.fullname" . }}-admin
+                  key: admin-password
+            - name: JOOMLA_ADMIN_EMAIL
+              value: {{ .Values.site.adminEmail | quote }}
+            - name: JOOMLA_ADMIN_FULL_NAME
+              value: {{ .Values.site.adminFullName | quote }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/www/html
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (printf "%s-data" (include "common.fullname" .)) }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

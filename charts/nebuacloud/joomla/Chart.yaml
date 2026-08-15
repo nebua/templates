@@ -1,0 +1,14 @@
+apiVersion: v2
+name: joomla
+description: Joomla on the official Docker Hub image (Docker Official Images), external database only.
+type: application
+version: 1.0.0
+appVersion: "5"
+keywords:
+  - joomla
+  - cms
+home: https://hub.docker.com/_/joomla
+sources:
+  - https://hub.docker.com/_/joomla
+maintainers:
+  - name: NebuaCloud

@@ -1,0 +1,38 @@
+image:
+  registry: docker.io
+  repository: phpmyadmin
+  tag: "5"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Left blank by default - phpMyAdmin's own login screen lets the user pick
+# a server (PMA_ARBITRARY=1 below allows that). Set db.host to pre-fill/
+# lock it to a specific database service instead.
+db:
+  host: ""
+  port: 3306
+
+ingress:
+  enabled: true
+  hostname: ""
+  ingressClassName: "nginx"
+  annotations: {}
+  tls: false
+
+service:
+  port: 80
+
+resources:
+  limits:
+    cpu: "300m"
+    memory: "256Mi"
+  requests:
+    cpu: "50m"
+    memory: "128Mi"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

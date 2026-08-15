@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mongodb
+description: MongoDB on the official Docker Hub image (Docker Official Images).
+type: application
+version: 1.0.0
+appVersion: "7.0"
+keywords:
+  - mongodb
+  - database
+home: https://hub.docker.com/_/mongo
+sources:
+  - https://hub.docker.com/_/mongo
+maintainers:
+  - name: NebuaCloud

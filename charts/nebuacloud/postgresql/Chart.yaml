@@ -1,0 +1,14 @@
+apiVersion: v2
+name: postgresql
+description: PostgreSQL on the official Docker Hub image (Docker Official Images).
+type: application
+version: 1.0.0
+appVersion: "16"
+keywords:
+  - postgresql
+  - database
+home: https://hub.docker.com/_/postgres
+sources:
+  - https://hub.docker.com/_/postgres
+maintainers:
+  - name: NebuaCloud

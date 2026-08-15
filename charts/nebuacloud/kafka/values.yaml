@@ -1,0 +1,32 @@
+image:
+  registry: docker.io
+  repository: apache/kafka
+  tag: "3.8.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Single-node KRaft (broker+controller combined) - no ZooKeeper, unlike the
+# old Bitnami chart. Not a multi-broker HA cluster; that's real added
+# complexity out of scope for a lean marketplace offering.
+service:
+  port: 9092
+
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: "10Gi"
+
+resources:
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+  requests:
+    cpu: "200m"
+    memory: "1Gi"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: odoo
+description: Odoo on the official Docker Hub image (Docker Official Images), external PostgreSQL only.
+type: application
+version: 1.0.0
+appVersion: "17"
+keywords:
+  - odoo
+  - erp
+home: https://hub.docker.com/_/odoo
+sources:
+  - https://hub.docker.com/_/odoo
+maintainers:
+  - name: NebuaCloud

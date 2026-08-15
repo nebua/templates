@@ -1,0 +1,48 @@
+image:
+  registry: docker.io
+  repository: odoo
+  tag: "17"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Odoo only ever speaks PostgreSQL (no MySQL/MariaDB support) - point this
+# at a NebuaCloud Managed Database provisioned with engine=postgres.
+externalDatabase:
+  host: ""
+  port: 5432
+  user: ""
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "db-password"
+
+ingress:
+  enabled: true
+  hostname: ""
+  ingressClassName: "nginx"
+  annotations: {}
+  tls: false
+
+persistence:
+  # /var/lib/odoo - Odoo's filestore (attachments, session data)
+  enabled: true
+  storageClass: "longhorn"
+  size: "10Gi"
+  existingClaim: ""
+
+service:
+  port: 8069
+
+resources:
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+  requests:
+    cpu: "200m"
+    memory: "512Mi"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

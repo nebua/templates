@@ -1,0 +1,80 @@
+{{/*
+Runs `wp core install` once via a post-install Helm hook, giving a *new*
+site a working admin login without visiting the classic setup wizard by
+hand - matching the old Bitnami chart's UX. Uses the official wp-cli image
+variant (same Docker Official Images pipeline, same docker-entrypoint.sh
+that builds wp-config.php from the WORDPRESS_DB_* env vars below, so this
+Job needs no access to the Deployment's own filesystem/PVC - `wp core
+install` writes installation state straight to the shared database).
+
+Must stay disabled for a migrated site: its database already has users and
+content, so bootstrapping again would at best no-op, at worst conflict with
+imported data. WordPressMigrationService sets bootstrap.enabled=false.
+
+backoffLimit gives it a few retries with backoff in case this fires before
+the database or the main Deployment's first successful connection is ready,
+rather than needing a hand-rolled wait-for-it init step.
+*/}}
+{{- if .Values.bootstrap.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "wordpress.fullname" . }}-bootstrap
+  labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "5"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        {{- include "wordpress.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: bootstrap
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: wp-cli
+          image: "{{ .Values.cliImage.registry }}/{{ .Values.cliImage.repository }}:{{ .Values.cliImage.tag }}"
+          imagePullPolicy: {{ .Values.cliImage.pullPolicy }}
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: "{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}"
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.externalDatabase.user | quote }}
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.dbSecretName" . }}
+                  key: {{ include "wordpress.dbSecretPasswordKey" . }}
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.externalDatabase.database | quote }}
+            - name: WORDPRESS_TABLE_PREFIX
+              value: {{ .Values.externalDatabase.tablePrefix | quote }}
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              if wp core is-installed --allow-root 2>/dev/null; then
+                echo "WordPress already installed, skipping."
+                exit 0
+              fi
+              wp core install \
+                --url={{ printf "https://%s" .Values.ingress.hostname | quote }} \
+                --title={{ .Values.bootstrap.siteTitle | quote }} \
+                --admin_user={{ .Values.bootstrap.username | quote }} \
+                --admin_password={{ .Values.bootstrap.password | quote }} \
+                --admin_email={{ .Values.bootstrap.email | quote }} \
+                --skip-email \
+                --allow-root
+      resources:
+        limits:
+          cpu: "250m"
+          memory: "256Mi"
+        requests:
+          cpu: "50m"
+          memory: "64Mi"
+{{- end }}

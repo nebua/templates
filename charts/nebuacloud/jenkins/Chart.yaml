@@ -1,0 +1,14 @@
+apiVersion: v2
+name: jenkins
+description: Jenkins on the official jenkins/jenkins image, maintained by the Jenkins project itself.
+type: application
+version: 1.0.0
+appVersion: "lts"
+keywords:
+  - jenkins
+  - ci-cd
+home: https://www.jenkins.io
+sources:
+  - https://hub.docker.com/r/jenkins/jenkins
+maintainers:
+  - name: NebuaCloud

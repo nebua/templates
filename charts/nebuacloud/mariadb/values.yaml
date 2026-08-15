@@ -1,0 +1,35 @@
+image:
+  registry: docker.io
+  repository: mariadb
+  tag: "11.3"
+  pullPolicy: IfNotPresent
+
+auth:
+  rootPassword: ""
+  username: "default"
+  password: ""
+  database: "app"
+
+replicaCount: 1
+
+service:
+  port: 3306
+
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: "10Gi"
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,41 @@
+image:
+  registry: docker.io
+  repository: jenkins/jenkins
+  tag: "lts-jdk17"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+ingress:
+  enabled: true
+  hostname: ""
+  ingressClassName: "nginx"
+  annotations:
+    # Jenkins' own UI can send large request bodies (plugin uploads, etc.)
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+  tls: false
+
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: "10Gi"
+  existingClaim: ""
+
+service:
+  port: 8080
+  agentPort: 50000
+
+resources:
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+  requests:
+    cpu: "200m"
+    memory: "512Mi"
+
+podSecurityContext:
+  fsGroup: 1000
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

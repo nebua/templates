@@ -1,0 +1,104 @@
+# Default values for the NebuaCloud WordPress chart.
+# Wraps the official docker.io/library/wordpress image (Docker Official
+# Images - actively maintained, no vendor tier restrictions) instead of
+# Bitnami's, and is external-database-only by design: this chart never
+# bundles its own MySQL/MariaDB. Point externalDatabase.* at a NebuaCloud
+# Managed Database (see DatabaseProvisioningService) or any other reachable
+# MySQL/MariaDB - keeping the database off the pod's own storage is the
+# entire reason this chart exists.
+
+replicaCount: 1
+
+image:
+  registry: docker.io
+  repository: wordpress
+  tag: "6.7.2-apache"
+  pullPolicy: IfNotPresent
+
+# CLI-variant image used only by the bootstrap Job (wp-cli), maintained by
+# the same Docker Official Images pipeline as the main image above.
+cliImage:
+  registry: docker.io
+  repository: wordpress
+  tag: "cli-2.11.0"
+  pullPolicy: IfNotPresent
+
+externalDatabase:
+  host: ""
+  port: 3306
+  database: ""
+  user: ""
+  # Plaintext fallback - prefer existingSecret in any real deployment.
+  password: ""
+  # Name of an existing Secret containing the DB password, avoiding it ever
+  # appearing in a Helm release's stored values. Key name below.
+  existingSecret: ""
+  existingSecretPasswordKey: "db-password"
+  tablePrefix: "wp_"
+
+# Extra PHP constants appended to wp-config.php verbatim (one per line),
+# e.g. "define('WP_MEMORY_LIMIT', '256M');" - passed through untouched.
+extraConfig: ""
+
+# Runs `wp core install` via a post-install Helm hook Job, once, using the
+# credentials below - this is what gives a *new* WordPress install a
+# working admin account without visiting the classic setup wizard by hand,
+# matching the old Bitnami chart's UX. Must be disabled for a migrated site
+# (its database already has users/content - bootstrapping again would
+# either no-op against a non-empty DB or, worse, conflict with it).
+bootstrap:
+  enabled: true
+  username: "admin"
+  password: ""
+  email: "admin@example.com"
+  siteTitle: "My WordPress Site"
+
+ingress:
+  enabled: true
+  hostname: ""
+  ingressClassName: "nginx"
+  annotations: {}
+  tls: false
+
+persistence:
+  # Only wp-content (uploads/themes/plugins) is persisted - core files come
+  # from the image itself, so upgrading the image tag doesn't require
+  # migrating a volume's worth of WordPress core files.
+  enabled: true
+  storageClass: "longhorn"
+  size: "10Gi"
+  existingClaim: ""
+  accessMode: "ReadWriteOnce"
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+podAnnotations: {}
+podSecurityContext: {}
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

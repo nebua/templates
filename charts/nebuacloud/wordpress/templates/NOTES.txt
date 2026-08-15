@@ -1,0 +1,15 @@
+WordPress has been deployed.
+
+{{- if .Values.ingress.enabled }}
+Site URL: http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.hostname }}
+{{- end }}
+
+{{- if .Values.bootstrap.enabled }}
+Admin login: {{ .Values.bootstrap.username }} (password set via bootstrap.password)
+{{- else }}
+This site was deployed with bootstrap.enabled=false (migrated site) - the
+database already carries its own admin users.
+{{- end }}
+
+Database: {{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}/{{ .Values.externalDatabase.database }}
+(external - this chart does not bundle a database of its own)

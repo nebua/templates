@@ -1,0 +1,58 @@
+image:
+  registry: docker.io
+  repository: joomla
+  tag: "5"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+externalDatabase:
+  host: ""
+  port: 3306
+  type: "mysqli"
+  database: ""
+  user: ""
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "db-password"
+
+# Only takes effect when the database is empty - the official image's own
+# entrypoint detects an existing installation and skips these on a
+# migrated/already-installed site, same idea as the WordPress chart's
+# bootstrap job but built into the image itself here, no separate Job needed.
+site:
+  name: "My Joomla Site"
+  adminUser: "admin"
+  adminPassword: ""
+  adminEmail: "admin@example.com"
+  adminFullName: "Administrator"
+
+ingress:
+  enabled: true
+  hostname: ""
+  ingressClassName: "nginx"
+  annotations: {}
+  tls: false
+
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  size: "10Gi"
+  existingClaim: ""
+
+service:
+  port: 80
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+
+podSecurityContext: {}
+containerSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
