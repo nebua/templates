@@ -76,11 +76,11 @@ spec:
                 --admin_email={{ .Values.bootstrap.email | quote }} \
                 --skip-email \
                 --allow-root
-      resources:
-        limits:
-          cpu: "250m"
-          memory: "256Mi"
-        requests:
-          cpu: "50m"
-          memory: "64Mi"
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
 {{- end }}

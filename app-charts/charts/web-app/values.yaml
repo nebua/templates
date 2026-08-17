@@ -21,7 +21,6 @@ extraEnv: []
 ingress:
   enabled: true
   className: nginx
-  annotations: {}
   hosts:
     - host: ""
       paths:
