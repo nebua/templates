@@ -86,15 +86,19 @@ livenessProbe:
   enabled: true
   initialDelaySeconds: 60
   periodSeconds: 20
-  timeoutSeconds: 5
-  failureThreshold: 6
+  # A 5s timeout was too tight for wp-login.php/install.php under this
+  # workload's CPU limit and an external DB - measured ~17s to respond on a
+  # live instance, so every probe cycle timed out and kubelet killed the
+  # container before it ever stabilized (endless CrashLoopBackOff -> 503).
+  timeoutSeconds: 20
+  failureThreshold: 10
 
 readinessProbe:
   enabled: true
   initialDelaySeconds: 30
   periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 6
+  timeoutSeconds: 20
+  failureThreshold: 10
 
 podAnnotations: {}
 podSecurityContext: {}

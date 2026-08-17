@@ -19,7 +19,13 @@ rather than needing a hand-rolled wait-for-it init step.
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "wordpress.fullname" . }}-bootstrap
+  # Kubernetes Jobs auto-inject a job-name label onto their pods, using this
+  # very metadata.name as the label *value* - label values cap at 63 chars,
+  # so appending "-bootstrap" after wordpress.fullname's own truncation (already
+  # 63 chars for a long release name) silently broke every affected install:
+  # the Job failed API validation on every attempt and was never even created,
+  # so `wp core install` never ran and sites were stuck on the setup wizard.
+  name: {{ printf "%s-bootstrap" (include "wordpress.fullname" .) | trunc 63 | trimSuffix "-" }}
   labels:
     {{- include "wordpress.labels" . | nindent 4 }}
   annotations:
