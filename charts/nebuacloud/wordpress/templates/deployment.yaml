@@ -6,6 +6,8 @@ metadata:
     {{- include "wordpress.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "wordpress.selectorLabels" . | nindent 6 }}
