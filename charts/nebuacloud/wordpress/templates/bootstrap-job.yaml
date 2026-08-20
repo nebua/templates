@@ -2,10 +2,16 @@
 Runs `wp core install` once via a post-install Helm hook, giving a *new*
 site a working admin login without visiting the classic setup wizard by
 hand - matching the old Bitnami chart's UX. Uses the official wp-cli image
-variant (same Docker Official Images pipeline, same docker-entrypoint.sh
-that builds wp-config.php from the WORDPRESS_DB_* env vars below, so this
-Job needs no access to the Deployment's own filesystem/PVC - `wp core
-install` writes installation state straight to the shared database).
+variant, which (unlike the apache/fpm variant) does *not* auto-download
+core or generate wp-config.php from WORDPRESS_DB_* env vars on its own -
+its docker-entrypoint.sh is just an 11-line `wp` argv shim. So this Job
+does its own `wp core download` + `wp config create` into its own
+ephemeral filesystem first; it needs no access to the Deployment's own
+filesystem/PVC since `wp core install` writes installation state straight
+to the shared database. `wp core download` needs PHP's memory_limit
+raised past the image's 128M default to extract the core zip (peak RSS
+measured around 25Mi, well under this Job's own memory limit below - it's
+a PHP-ini ceiling, not a real memory need).
 
 Must stay disabled for a migrated site: its database already has users and
 content, so bootstrapping again would at best no-op, at worst conflict with
@@ -64,6 +70,15 @@ spec:
             - -c
             - |
               set -e
+              wp() { php -d memory_limit=256M /usr/local/bin/wp "$@"; }
+              wp core download --allow-root
+              wp config create \
+                --dbhost="$WORDPRESS_DB_HOST" \
+                --dbuser="$WORDPRESS_DB_USER" \
+                --dbpass="$WORDPRESS_DB_PASSWORD" \
+                --dbname="$WORDPRESS_DB_NAME" \
+                --dbprefix="$WORDPRESS_TABLE_PREFIX" \
+                --allow-root
               if wp core is-installed --allow-root 2>/dev/null; then
                 echo "WordPress already installed, skipping."
                 exit 0
