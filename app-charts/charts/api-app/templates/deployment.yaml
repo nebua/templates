@@ -34,14 +34,14 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.containerPort | default .Values.service.port }}
+          {{- $env := dict "NODE_ENV" "production" "ENVIRONMENT" "production" }}
+          {{- range .Values.extraEnv }}
+          {{- $_ := set $env .name .value }}
+          {{- end }}
           env:
-            - name: NODE_ENV
-              value: production
-            - name: ENVIRONMENT
-              value: production
-            {{- range .Values.extraEnv }}
-            - name: {{ .name | quote }}
-              value: {{ .value | quote }}
+            {{- range $name, $value := $env }}
+            - name: {{ $name | quote }}
+              value: {{ $value | quote }}
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
