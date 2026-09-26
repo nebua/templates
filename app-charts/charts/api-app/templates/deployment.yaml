@@ -32,6 +32,10 @@ spec:
         - name: {{ .Release.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.containerPort | default .Values.service.port }}
           {{- $env := dict "NODE_ENV" "production" "ENVIRONMENT" "production" }}

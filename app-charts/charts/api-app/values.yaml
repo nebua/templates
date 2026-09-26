@@ -57,3 +57,7 @@ serviceAccount:
   annotations: {}
 
 extraEnv: []
+
+# Optional container args - override the image's CMD (like a docker-compose
+# `command:`), keeping its ENTRYPOINT. Empty = the image's own default.
+args: []
