@@ -61,3 +61,9 @@ extraEnv: []
 # Optional container args - override the image's CMD (like a docker-compose
 # `command:`), keeping its ENTRYPOINT. Empty = the image's own default.
 args: []
+
+# Volumes + init steps from NebuaCloud's Runtime settings: base64 of
+# {"volumes":[{name,mountPath,claimName?,shared?,size?,readOnly?,subPath?}],
+#  "initSteps":[{name?,image,command?,mounts:[{volume,mountPath,subPath?}]}]}
+# (one opaque value, since Argo CD helm parameters can't hold object lists).
+runtimeStorage: ""
