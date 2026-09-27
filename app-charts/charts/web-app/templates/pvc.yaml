@@ -1,0 +1,22 @@
+{{- /* Volumes created from Runtime settings (see deployment.yaml); a volume
+     with claimName attaches an existing claim and creates nothing. */}}
+{{- if .Values.runtimeStorage }}
+{{- $runtime := .Values.runtimeStorage | b64dec | fromJson }}
+{{- range $runtime.volumes }}
+{{- if not .claimName }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-%s" (trunc 40 $.Release.Name) .name | quote }}
+  labels:
+    app: {{ $.Release.Name }}
+spec:
+  accessModes:
+    - {{ if .shared }}ReadWriteMany{{ else }}ReadWriteOnce{{ end }}
+  resources:
+    requests:
+      storage: {{ default "1Gi" .size | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
