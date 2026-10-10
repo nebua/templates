@@ -14,6 +14,17 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      {{- if .Values.workerNodesOnly }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                  - key: node-role.kubernetes.io/master
+                    operator: DoesNotExist
+      {{- end }}
       {{- $hasRegistryToken := and .Values.registry (ne (default "" .Values.registry.token) "") -}}
       {{- $registrySecretName := default (printf "%s-registry-credentials" .Release.Name) .Values.registry.secretName -}}
       {{- if or .Values.imagePullSecrets $hasRegistryToken }}
