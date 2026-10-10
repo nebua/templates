@@ -9,6 +9,10 @@ image:
 
 imagePullSecrets: []
 
+# Keep pods off control-plane nodes (required node affinity). Set by NebuaCloud
+# when the target cluster has at least one schedulable worker node.
+workerNodesOnly: false
+
 registry:
   provider: "github"
   server: ""
