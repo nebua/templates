@@ -5,6 +5,8 @@ metadata:
   name: {{ .Release.Name }}
   labels:
     app: {{ .Release.Name }}
+    # NebuaCloud's app-scoped backups select the app's resources by this label.
+    app.kubernetes.io/instance: {{ .Release.Name }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
