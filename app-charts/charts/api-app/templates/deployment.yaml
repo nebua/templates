@@ -40,6 +40,11 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      {{- with .Values.secretEnv }}
+      annotations:
+        # Environment variables are read at start: a changed secret value restarts the pods.
+        checksum/secret-env: {{ toJson . | sha256sum }}
+      {{- end }}
     spec:
       {{- if gt (int .Values.replicaCount) 1 }}
       # One replica per node when there are enough nodes, so losing a node doesn't take them all.
@@ -112,10 +117,20 @@ spec:
           {{- range .Values.extraEnv }}
           {{- $_ := set $env .name .value }}
           {{- end }}
+          {{- range .Values.secretEnv }}
+          {{- $_ := unset $env .name }}
+          {{- end }}
           env:
             {{- range $name, $value := $env }}
             - name: {{ $name | quote }}
               value: {{ $value | quote }}
+            {{- end }}
+            {{- range .Values.secretEnv }}
+            - name: {{ .name | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-env" $.Release.Name | quote }}
+                  key: {{ .name | quote }}
             {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
