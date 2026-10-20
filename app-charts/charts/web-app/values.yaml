@@ -1,5 +1,15 @@
 replicaCount: 1
 
+# Empty = chosen from the volumes: Recreate when a ReadWriteOnce volume is
+# mounted, otherwise RollingUpdate that only removes an old pod once a new one
+# is ready. Set to override, e.g. {type: Recreate}.
+strategy: {}
+
+# Created when replicaCount > 1.
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
 containerPort: 80
 
 image:
@@ -53,3 +63,19 @@ resources:
 service:
   type: ClusterIP
   port: 80
+
+# HTTP checks on containerPort. Readiness keeps traffic (and a rolling update)
+# off a pod until it answers; liveness restarts a pod that stops answering.
+readinessProbe:
+  enabled: false
+  path: /
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+
+livenessProbe:
+  enabled: false
+  path: /
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 3

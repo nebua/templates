@@ -1,3 +1,14 @@
+{{- /* Volumes + init steps from NebuaCloud's Runtime settings (see values.yaml). */}}
+{{- $runtime := dict }}
+{{- if .Values.runtimeStorage }}
+{{- $runtime = .Values.runtimeStorage | b64dec | fromJson }}
+{{- end }}
+{{- /* A ReadWriteOnce volume attaches to one node only: a new pod on another node
+     would wait forever (Multi-Attach), so the old pod has to stop first. */}}
+{{- $rwo := false }}
+{{- range $runtime.volumes }}
+{{- if not .shared }}{{ $rwo = true }}{{ end }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,6 +17,22 @@ metadata:
     app: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  {{- if .Values.strategy }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  {{- else if $rwo }}
+  strategy:
+    type: Recreate
+    rollingUpdate: null
+  {{- else }}
+  # A new pod replaces an old one only once it is ready: an image that can't be
+  # pulled leaves the old pods serving.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  {{- end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -14,6 +41,16 @@ spec:
       labels:
         app: {{ .Release.Name }}
     spec:
+      {{- if gt (int .Values.replicaCount) 1 }}
+      # One replica per node when there are enough nodes, so losing a node doesn't take them all.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Release.Name }}
+      {{- end }}
       {{- if .Values.workerNodesOnly }}
       affinity:
         nodeAffinity:
@@ -35,10 +72,6 @@ spec:
         {{- if .Values.imagePullSecrets }}
         {{- toYaml .Values.imagePullSecrets | nindent 8 }}
         {{- end }}
-      {{- end }}
-      {{- $runtime := dict }}
-      {{- if .Values.runtimeStorage }}
-      {{- $runtime = .Values.runtimeStorage | b64dec | fromJson }}
       {{- end }}
       {{- with $runtime.initSteps }}
       initContainers:
@@ -95,6 +128,24 @@ spec:
               readOnly: true
               {{- end }}
             {{- end }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.containerPort | default 80 }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 1 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.containerPort | default 80 }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 1 }}
           {{- end }}
       {{- with $runtime.volumes }}
       volumes:
