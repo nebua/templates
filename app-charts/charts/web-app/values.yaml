@@ -32,6 +32,11 @@ registry:
 
 extraEnv: []
 
+# Like extraEnv ([{name, value}]), but the values go into a Secret named
+# "<release>-env" and reach the container through secretKeyRef, so they never
+# appear in the Deployment. A name in both lists is taken from here.
+secretEnv: []
+
 # Optional container args - override the image's CMD (like a docker-compose
 # `command:`), keeping its ENTRYPOINT. Empty = the image's own default.
 args: []
