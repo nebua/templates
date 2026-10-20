@@ -11,6 +11,8 @@ metadata:
   name: {{ printf "%s-%s" (trunc 40 $.Release.Name) .name | quote }}
   labels:
     app: {{ $.Release.Name }}
+    # NebuaCloud's app-scoped backups select the app's resources by this label.
+    app.kubernetes.io/instance: {{ $.Release.Name }}
 spec:
   accessModes:
     - {{ if .shared }}ReadWriteMany{{ else }}ReadWriteOnce{{ end }}
